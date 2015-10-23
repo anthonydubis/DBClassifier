@@ -11,7 +11,7 @@ public class Interaction {
 		
 		System.out.println("Key: " + key + "\nt_es: " + t_es + "\nt_ec: " + t_ec + "\nhost: " + host);
 		
-		int n = Utils.getNumDocs(key, host, "cancer");
-		System.out.println("Number of docs: " + n);
+		Classifier classifier = new Classifier(host, key);
+		System.out.println(classifier.classifyDB(t_ec, t_es));
 	}
 }
