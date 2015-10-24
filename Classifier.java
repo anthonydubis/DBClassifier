@@ -11,10 +11,48 @@ public class Classifier {
 	private String host;
 	private String key;
 	private HashMap<String, String> files;
+	private Node root;
+	
+	public class Node {
+		/* The category name - Root, Health, etc. */
+		String C;
+		/* Sub-categories, null if this is a leaf node */
+		Node[] children;
+		/* Queries, null if this is a leaf node */
+		String queries_file;
+		
+		Node(String category, String file, Node[] subcategories)
+		{
+			C = category;
+			queries_file = file;
+			children = subcategories;
+		}
+	}
+	
+	private void buildClassification()
+	{
+		/* Level 2 Categories - The leaf nodes */
+		Node programming = new Node("Programming", null, null);
+		Node hardware = new Node("Hardware", null, null);
+		Node fitness = new Node("Fitness", null, null);
+		Node diseases = new Node("Diseases", null, null);
+		Node basketball = new Node("Basketball", null, null);
+		Node soccer = new Node("Soccer", null, null);
+		
+		/* Level 1 Categories */
+		Node computers = new Node("Computers", "computers.txt", new Node[] {programming, hardware});
+		Node health = new Node("Health", "health.txt", new Node[] {fitness, diseases});
+		Node sports = new Node("Sports", "sports.txt", new Node[] {basketball, soccer});
+		
+		/* Level 0 - the root */
+		this.root = new Node("Root", "root.txt", new Node[] {computers, health, sports});
+	}
 	
 	public Classifier(String host, String key) {
 		this.host = host;
 		this.key = key;
+		buildClassification();
+		
 		files = new HashMap<String, String>();
 		files.put("Root", "root.txt");
 		files.put("Computers", "computers.txt");
@@ -46,12 +84,28 @@ public class Classifier {
 		br.close();
 		return coverages;
 	}
+	
+	/*
+	 * Returns true if C (a category) is a leaf node.
+	 */
+	private boolean isLeafNode(Node C)
+	{
+		return C.children == null;
+	}
+	
+	private String classify(Node C, String host, int t_ec, float t_es, float e_specificity)
+	{
+		String result = "";
+		if (isLeafNode(C))
+			return result;
+		
+		return result;
+	}
 
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
 		StringBuilder classification = new StringBuilder("Root/");
 		HashMap<String, Integer> coverages = getCoverage("Root");
-		// For specificity, ignore for now until defining select * query
-		//int n = Utils.getNumDocs(key, host, "");
+
 		int maxCoverage = 0;
 		String candidate = "";
 		for (String db : coverages.keySet()) {
