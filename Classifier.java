@@ -49,7 +49,7 @@ public class Classifier {
 	}
 
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
-		StringBuilder classification = new StringBuilder("Root/");
+		StringBuilder classification = new StringBuilder("Root");
 		HashMap<String, Integer> coverages = getCoverage("Root");
 		// For specificity, ignore for now until defining select * query
 		//int n = Utils.getNumDocs(key, host, "");
@@ -59,11 +59,11 @@ public class Classifier {
 			// Only with coverages for now
 			//float dbSpecificity = dbCoverages.get(db) / n;
 			if (coverages.get(db) >= t_ec) {
-				candidate = db;
+				candidate = "/" + db;
 				HashMap<String, Integer> subDbCoverages = getCoverage(db);
 				for (String subDb : subDbCoverages.keySet()) {
 					if (subDbCoverages.get(subDb) >= t_ec && subDbCoverages.get(subDb) > maxCoverage) {
-						candidate = db + "/" + subDb;
+						candidate = candidate + "/" + subDb;
 						maxCoverage = subDbCoverages.get(subDb);
 					}
 				}
