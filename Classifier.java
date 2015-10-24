@@ -1,8 +1,10 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
+import java.util.Map;
 
 import org.json.JSONException;
 
@@ -29,6 +31,24 @@ public class Classifier {
 		}
 	}
 	
+	public Classifier(String host, String key) {
+		this.host = host;
+		this.key = key;
+		
+		/* Option 1 */
+		files = new HashMap<String, String>();
+		files.put("Root", "root.txt");
+		files.put("Computers", "computers.txt");
+		files.put("Health", "health.txt");
+		files.put("Sports", "sports.txt");
+		
+		/* Option 2 - use this.root to access nodes and file names */
+		buildClassification();
+	}
+	
+	/*
+	 * Build the tree structure that represents the classification hierarchy
+	 */
 	private void buildClassification()
 	{
 		/* Level 2 Categories - The leaf nodes */
@@ -46,18 +66,6 @@ public class Classifier {
 		
 		/* Level 0 - the root */
 		this.root = new Node("Root", "root.txt", new Node[] {computers, health, sports});
-	}
-	
-	public Classifier(String host, String key) {
-		this.host = host;
-		this.key = key;
-		buildClassification();
-		
-		files = new HashMap<String, String>();
-		files.put("Root", "root.txt");
-		files.put("Computers", "computers.txt");
-		files.put("Health", "health.txt");
-		files.put("Sports", "sports.txt");
 	}
 	
 	private HashMap<String, Integer> getCoverage(String classification) throws IOException, JSONException {
@@ -88,16 +96,58 @@ public class Classifier {
 	/*
 	 * Returns true if C (a category) is a leaf node.
 	 */
-	private boolean isLeafNode(Node C)
+	private boolean isLeafNode(Node node)
 	{
-		return C.children == null;
+		return node.children == null;
 	}
 	
-	private String classify(Node C, String host, int t_ec, float t_es, float e_specificity)
+	/*
+	 * Returns the number of docs that the host contains for the category node
+	 * given the probing queries associated with it.
+	 */
+	private int getCoverage(Node node) throws IOException, JSONException
+	{
+		int coverage = 0;
+		
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(node.queries_file)));
+		String line = null;
+		
+		while ((line = br.readLine()) != null) {
+			String[] parts = line.split(" ");
+			
+			/* If this query is not related with this node, skip it */
+			if (parts[0].equalsIgnoreCase(node.C))
+				continue;
+			
+			/* Handle queries with multiple words */
+			String query = "";
+			for (int i = 1; i < parts.length; i++)
+				query = query + parts[i];
+			
+			coverage += Utils.getNumDocs(key, host, query);
+		}
+		br.close();
+		
+		return coverage;
+	}
+	
+	/*
+	 * Following the algorithm as outline in Fig. 4
+	 */
+	private String classify(Node node, String host, int t_ec, float t_es, float e_specificity) throws IOException, JSONException
 	{
 		String result = "";
-		if (isLeafNode(C))
-			return result;
+		
+		/* If this is a leaf node, return the category */
+		if (isLeafNode(node))
+			return "/" + node.C;
+		
+		/* Get the number of matches for each of the children categories */
+		Map<Node, Integer> coverages = new HashMap<Node, Integer>();
+		for (Node childNode : node.children)
+			coverages.put(childNode, getCoverage(childNode));
+		
+		
 		
 		return result;
 	}
