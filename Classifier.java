@@ -18,8 +18,8 @@ public class Classifier {
 		files = new HashMap<String, String>();
 		files.put("Root", "root.txt");
 		files.put("Computers", "computers.txt");
-		files.put("Health", "Health.txt");
-		files.put("Sports", "Sports.txt");
+		files.put("Health", "health.txt");
+		files.put("Sports", "sports.txt");
 	}
 	
 	private HashMap<String, Integer> getCoverage(String classification) throws IOException, JSONException {
