@@ -19,7 +19,6 @@ public class Utils {
 		query = query.replaceAll(" ", "%20");
 		String site = "site%3a" + host;
 		String bingUrl = "https://api.datamarket.azure.com/Data.ashx/Bing/SearchWeb/v1/Composite?Query=%27" + site + "%20" + query + "%27&$top=10&$format=JSON";
-		//System.out.println("URL: " + bingUrl);
 
 		/* Setup account key */
 		byte[] accountKeyBytes = Base64.encodeBase64((key + ":" + key).getBytes());
@@ -45,10 +44,8 @@ public class Utils {
 			in.close();
 		}
 		
-		//System.out.println(jsonArr);
 		JSONObject json = jsonArr.getJSONObject(0);
 		numDocs = json.getInt("WebTotal"); 
-		//System.out.println(numDocs);
 		return numDocs;
 	}
 }

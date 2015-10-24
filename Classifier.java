@@ -8,7 +8,6 @@ import org.json.JSONException;
 
 
 public class Classifier {
-	
 	private String host;
 	private String key;
 	private HashMap<String, String> files;
@@ -23,7 +22,7 @@ public class Classifier {
 		files.put("Sports", "Sports.txt");
 	}
 	
-	public HashMap<String, Integer> getCoverage(String classification) throws IOException, JSONException {
+	private HashMap<String, Integer> getCoverage(String classification) throws IOException, JSONException {
 		HashMap<String, Integer> coverages = new HashMap<String, Integer>();
 		FileInputStream fstream = new FileInputStream(files.get(classification));
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
