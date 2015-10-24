@@ -143,16 +143,22 @@ public class Classifier {
 			return "/" + node.C;
 		
 		/* Get the number of matches for each of the children categories */
-		Map<Node, Integer> coverages = new HashMap<Node, Integer>();
-		for (Node childNode : node.children)
-			coverages.put(childNode, getCoverage(childNode));
+		Map<String, Integer> coverages = new HashMap<String, Integer>();
+		int numDocs = 0;
+		for (Node childNode : node.children) {
+			coverages.put(childNode.C, getCoverage(childNode));
+			numDocs += coverages.get(childNode.C);
+			System.out.println("Node: " + childNode.C + " with matches: " + coverages.get(childNode.C));
+		}
 		
-		
-		
+		System.out.println("Total docs: " + numDocs);
+			
 		return result;
 	}
 
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
+		classify(root, host, t_ec, t_es, 1);
+		
 		StringBuilder classification = new StringBuilder("Root/");
 		HashMap<String, Integer> coverages = getCoverage("Root");
 
