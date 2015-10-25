@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
@@ -105,18 +104,18 @@ public class Classifier {
 	 * Returns the number of docs that the host contains for the category node
 	 * given the probing queries associated with it.
 	 */
-	private int getCoverage(Node node) throws IOException, JSONException
+	private int getCoverage(Node parent, Node child) throws IOException, JSONException
 	{
 		int coverage = 0;
 		
-		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(node.queries_file)));
+		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(parent.queries_file)));
 		String line = null;
 		
 		while ((line = br.readLine()) != null) {
 			String[] parts = line.split(" ");
 			
 			/* If this query is not related with this node, skip it */
-			if (parts[0].equalsIgnoreCase(node.C))
+			if (!parts[0].equalsIgnoreCase(child.C))
 				continue;
 			
 			/* Handle queries with multiple words */
@@ -143,21 +142,37 @@ public class Classifier {
 			return "/" + node.C;
 		
 		/* Get the number of matches for each of the children categories */
-		Map<String, Integer> coverages = new HashMap<String, Integer>();
-		int numDocs = 0;
-		for (Node childNode : node.children) {
-			coverages.put(childNode.C, getCoverage(childNode));
-			numDocs += coverages.get(childNode.C);
-			System.out.println("Node: " + childNode.C + " with matches: " + coverages.get(childNode.C));
+		Map<String, Float> coverages = new HashMap<String, Float>();
+		float numDocs = 0;
+		for (Node child : node.children) {
+			coverages.put(child.C, (float)getCoverage(node, child));
+			numDocs += coverages.get(child.C);
+			System.out.println("Node: " + child.C + " with matches: " + coverages.get(child.C));
 		}
 		
-		System.out.println("Total docs: " + numDocs);
-			
+		/* Dive into sub-categories that meet criteria */
+		for (Node child : node.children) {
+			System.out.println("Checking specificity for " + child.C);
+			e_specificity = coverages.get(child.C) / numDocs;
+			System.out.println("e_specificity equals " + e_specificity + " coverage equals: " + coverages.get(child.C));
+			if (e_specificity >= t_es && coverages.get(child.C) >= t_ec) {
+				System.out.println("Criteria was met");
+				result += node.C + classify(child, host, t_ec, t_es, e_specificity);
+			}
+		}
+		
+		if (result.equals(""))
+			result = node.C;
+		
+		if (node != root)
+			result = "/" + result;
+
 		return result;
 	}
 
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
-		classify(root, host, t_ec, t_es, 1);
+		String ajd_classification = classify(root, host, t_ec, t_es, 1);
+		System.out.println("Classification: " + ajd_classification);
 		
 		StringBuilder classification = new StringBuilder("Root/");
 		HashMap<String, Integer> coverages = getCoverage("Root");
