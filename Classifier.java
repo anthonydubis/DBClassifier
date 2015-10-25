@@ -11,9 +11,14 @@ import org.json.JSONException;
 public class Classifier {
 	private String host;
 	private String key;
+	
+	/* Option 1 */
 	private HashMap<String, String> files;
+	
+	/* Option 2 */
 	private Node root;
 	
+	/* Option 2 */
 	public class Node {
 		/* The category name - Root, Health, etc. */
 		String C;
@@ -45,27 +50,7 @@ public class Classifier {
 		buildClassification();
 	}
 	
-	/*
-	 * Build the tree structure that represents the classification hierarchy
-	 */
-	private void buildClassification()
-	{
-		/* Level 2 Categories - The leaf nodes */
-		Node programming = new Node("Programming", null, null);
-		Node hardware = new Node("Hardware", null, null);
-		Node fitness = new Node("Fitness", null, null);
-		Node diseases = new Node("Diseases", null, null);
-		Node basketball = new Node("Basketball", null, null);
-		Node soccer = new Node("Soccer", null, null);
-		
-		/* Level 1 Categories */
-		Node computers = new Node("Computers", "computers.txt", new Node[] {programming, hardware});
-		Node health = new Node("Health", "health.txt", new Node[] {fitness, diseases});
-		Node sports = new Node("Sports", "sports.txt", new Node[] {basketball, soccer});
-		
-		/* Level 0 - the root */
-		this.root = new Node("Root", "root.txt", new Node[] {computers, health, sports});
-	}
+	/* ---------------------------- Option 1 -------------------------------- */
 	
 	private HashMap<String, Integer> getCoverage(String classification) throws IOException, JSONException {
 		HashMap<String, Integer> coverages = new HashMap<String, Integer>();
@@ -90,6 +75,30 @@ public class Classifier {
 		}
 		br.close();
 		return coverages;
+	}
+	
+	/* -------------------------------- Option 2 -------------------------------- */
+	
+	/*
+	 * Build the tree structure that represents the classification hierarchy
+	 */
+	private void buildClassification()
+	{
+		/* Level 2 Categories - The leaf nodes */
+		Node programming = new Node("Programming", null, null);
+		Node hardware = new Node("Hardware", null, null);
+		Node fitness = new Node("Fitness", null, null);
+		Node diseases = new Node("Diseases", null, null);
+		Node basketball = new Node("Basketball", null, null);
+		Node soccer = new Node("Soccer", null, null);
+		
+		/* Level 1 Categories */
+		Node computers = new Node("Computers", "computers.txt", new Node[] {programming, hardware});
+		Node health = new Node("Health", "health.txt", new Node[] {fitness, diseases});
+		Node sports = new Node("Sports", "sports.txt", new Node[] {basketball, soccer});
+		
+		/* Level 0 - the root */
+		this.root = new Node("Root", "root.txt", new Node[] {computers, health, sports});
 	}
 	
 	/*
@@ -171,9 +180,11 @@ public class Classifier {
 	}
 
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
+		/* Option 2 */
 		String ajd_classification = classify(root, host, t_ec, t_es, 1);
 		System.out.println("Classification: " + ajd_classification);
 		
+		/* Option 1 */
 		StringBuilder classification = new StringBuilder("Root/");
 		HashMap<String, Integer> coverages = getCoverage("Root");
 
