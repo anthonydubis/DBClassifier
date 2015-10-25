@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONArray;
@@ -12,11 +14,10 @@ import org.json.JSONObject;
 
 public class Utils {
 	
-	public static JSONArray queryBing(String key, String host, String query, String top) throws IOException {
+	public static JSONObject queryBing(String key, String host, String query, int top) throws IOException {
 		/* Setup query URL */
 		query = query.replaceAll(" ", "%20");
-
-		String urlPattern = "https://api.datamarket.azure.com/Data.ashx/Bing/SearchWeb/v1/Composite?Query=%%27site:%s%%20%s%%27&$top=%s&$format=JSON";
+		String urlPattern = "https://api.datamarket.azure.com/Data.ashx/Bing/SearchWeb/v1/Composite?Query=%%27site%%3a%s%%20%s%%27&$top=%s&$format=JSON";
 		String bingUrl = String.format(urlPattern, host, query, top);
 		/* Setup account key */
 		byte[] accountKeyBytes = Base64.encodeBase64((key + ":" + key).getBytes());
@@ -26,7 +27,7 @@ public class Utils {
 		URLConnection connection = url.openConnection();
 		connection.setRequestProperty("Authorization", "Basic " + accountKeyEnc);
 
-		JSONArray results = null;
+		JSONObject results = null;
 		BufferedReader in = new BufferedReader(new InputStreamReader(connection.getInputStream()));	
 		try {
 			String line;
@@ -35,7 +36,7 @@ public class Utils {
 				response.append(line);
 			}
 			final JSONObject json = new JSONObject(response.toString());
-			results = json.getJSONObject("d").getJSONArray("results");
+			results = json.getJSONObject("d").getJSONArray("results").getJSONObject(0);
 		} catch (JSONException e) {
 			e.printStackTrace();
 		} finally {
@@ -46,7 +47,17 @@ public class Utils {
 	}
 
 	public static int getNumDocs(String key, String host, String query) throws IOException, JSONException {
-		JSONArray jsonArr = queryBing(key, host, query, "10");
-		return jsonArr.getJSONObject(0).getInt("WebTotal"); 
+		JSONObject metadata = queryBing(key, host, query, 10);
+		return metadata.getInt("WebTotal");
+	}
+	
+	public static List<String> getTopDocs(String key, String host, String query) throws JSONException, IOException {
+		ArrayList<String> docs = new ArrayList<String>();
+		JSONArray jsonArr = queryBing(key, host, query, 4).getJSONArray("Web");
+		for (int i=0; i<jsonArr.length(); i++) {
+			JSONObject json = jsonArr.getJSONObject(i);
+			docs.add(json.get("Url").toString());
+		}
+		return docs;
 	}
 }

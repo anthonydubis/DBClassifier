@@ -13,7 +13,7 @@ public class Classifier {
 	private String key;
 	
 	/* Option 1 */
-	private HashMap<String, String> files;
+	public HashMap<String, String> files;
 	
 	/* Option 2 */
 	private Node root;
