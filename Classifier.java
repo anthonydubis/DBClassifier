@@ -182,10 +182,10 @@ public class Classifier {
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
 		/* Option 2 */
 		String ajd_classification = classify(root, host, t_ec, t_es, 1);
-		System.out.println("Classification: " + ajd_classification);
+		System.out.println("AJD_Classification: " + ajd_classification);
 		
 		/* Option 1 */
-		StringBuilder classification = new StringBuilder("Root/");
+		StringBuilder classification = new StringBuilder("Root");
 		HashMap<String, Integer> coverages = getCoverage("Root");
 
 		int maxCoverage = 0;
@@ -194,11 +194,11 @@ public class Classifier {
 			// Only with coverages for now
 			//float dbSpecificity = dbCoverages.get(db) / n;
 			if (coverages.get(db) >= t_ec) {
-				candidate = db;
+				candidate = "/" + db;
 				HashMap<String, Integer> subDbCoverages = getCoverage(db);
 				for (String subDb : subDbCoverages.keySet()) {
 					if (subDbCoverages.get(subDb) >= t_ec && subDbCoverages.get(subDb) > maxCoverage) {
-						candidate = db + "/" + subDb;
+						candidate = candidate + "/" + subDb;
 						maxCoverage = subDbCoverages.get(subDb);
 					}
 				}
