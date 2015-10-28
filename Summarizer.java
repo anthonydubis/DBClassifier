@@ -24,6 +24,7 @@ public class Summarizer {
 			int queryStart = line.indexOf(" ") + 1;
 			String query = line.substring(queryStart);
 			samples.addAll(Utils.getTopDocs(key, host, query));
+			line = br.readLine();
 		}
 		br.close();
 		return samples;
@@ -34,21 +35,26 @@ public class Summarizer {
 		filename = String.format(filename, classification, host);
 		FileWriter summary = new FileWriter(filename);
 		for (String word : frequencies.keySet()) {
-			summary.write(word + " " + frequencies.get(word));
+			summary.write(word + " " + frequencies.get(word) + "\n");
 		}
 		summary.close();
 	}
 	
 	public void summarize(String key, String host, String classification) throws IOException, JSONException {
 		Set<String> samples = sample(key, host, classification);
-		System.out.println(samples.size());
+		System.out.println("Sample size: " + samples.size());
 		HashMap<String, Float> frequencies = new HashMap<String, Float>();
-		int n = samples.size();
+		float n = (float) samples.size();
 		float frequency;
 		for (String sample : samples) {
 			Set<String> words = getWordsLynx.runLynx(sample);
 			for (String word : words) {
-				frequency = frequencies.containsKey(word) ? (1/n) : frequencies.get(word) + (1/n);
+				if (frequencies.containsKey(word)) {
+					frequency = frequencies.get(word) + (1/n);
+				} else {
+					frequency = (1/n);
+				}
+				frequencies.put(word, frequency);
 			}
 		}
 		writeSummary(frequencies, host, classification);
@@ -56,9 +62,11 @@ public class Summarizer {
 
 	public void buildSummaries(String key, String host, int t_ec, float t_es) throws IOException, JSONException {
 		classifier = new Classifier(key, host);
+		// For now I am not running the classifier, just doing part 2.
 		//String[] classes = classifier.classifyDB(t_ec, t_es).split("/");
 		String[] classes = {"Root"};
 		for (int i=0; i<classes.length; i++) {
+			System.out.println("Classification: " + classes[i]);
 			summarize(key, host, classes[i]);
 		}
 	}
