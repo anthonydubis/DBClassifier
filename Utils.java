@@ -57,6 +57,7 @@ public class Utils {
 		for (int i=0; i<jsonArr.length(); i++) {
 			JSONObject json = jsonArr.getJSONObject(i);
 			docs.add(json.get("Url").toString());
+			System.out.println("Getting page " + json.get("Url").toString() + "\n");
 		}
 		return docs;
 	}

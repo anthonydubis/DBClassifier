@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.json.JSONException;
 
@@ -20,17 +22,20 @@ public class Summarizer {
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 		String line = br.readLine();
 		int coverage = 0;
+		int counter = 1;
 		while (line != null)   {
 			int queryStart = line.indexOf(" ") + 1;
 			String query = line.substring(queryStart);
 			samples.addAll(Utils.getTopDocs(key, host, query));
+			System.out.println("Round " + counter);
+			counter++;
 			line = br.readLine();
 		}
 		br.close();
 		return samples;
 	}
 	
-	public void writeSummary(HashMap<String, Float> frequencies, String host, String classification) throws IOException {
+	public void writeSummary(TreeMap<String, Float> frequencies, String host, String classification) throws IOException {
 		String filename = "%s-%s.txt";
 		filename = String.format(filename, classification, host);
 		FileWriter summary = new FileWriter(filename);
@@ -43,7 +48,7 @@ public class Summarizer {
 	public void summarize(String key, String host, String classification) throws IOException, JSONException {
 		Set<String> samples = sample(key, host, classification);
 		System.out.println("Sample size: " + samples.size());
-		HashMap<String, Float> frequencies = new HashMap<String, Float>();
+		TreeMap<String, Float> frequencies = new TreeMap<String, Float>();
 		float n = (float) samples.size();
 		float frequency;
 		for (String sample : samples) {
