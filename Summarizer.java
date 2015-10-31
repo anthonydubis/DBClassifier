@@ -1,6 +1,5 @@
 import java.io.BufferedReader;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -16,10 +15,13 @@ public class Summarizer {
 	private String key;
 	private Classifier classifier;
 	private TreeMap<String, Integer> frequencies;
+	private Set<String> samples;
 	
 	public Summarizer(String host, String key) {
 		this.host = host;
 		this.key = key;
+		samples = new HashSet<String>();
+		frequencies = new TreeMap<String, Integer>();
 	}
 	
 	public void addFrequencies(String url) {
@@ -36,13 +38,11 @@ public class Summarizer {
 
 	// For each query, get 4 top docs and if docs are new, run lynx and add word frequencies.
 	public void sampleAndSummarize(String classification) throws IOException, JSONException {
-		// Keep track of documents to avoid duplicates
-		Set<String> samples = new HashSet<String>();
-		frequencies = new TreeMap<String, Integer>();
 		FileInputStream fstream = new FileInputStream(classifier.files.get(classification));
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 		String line = br.readLine();
 		int counter = 1;
+		System.out.println("\n\nQuerying for classification " + classification);
 		while (line != null)   {
 			int queryStart = line.indexOf(" ") + 1;
 			String query = line.substring(queryStart);
@@ -74,8 +74,8 @@ public class Summarizer {
 		classifier = new Classifier(key, host);
 		// For now I am not running the classifier, just doing part 2.
 		//String[] classes = classifier.classifyDB(t_ec, t_es).split("/");
-		String[] classes = {"Root"};
-		for (int i=0; i<classes.length; i++) {
+		String[] classes = {"Root","Health"};
+		for (int i=(classes.length-1); i>=0; i--) {
 			System.out.println("Classification: " + classes[i]);
 			sampleAndSummarize(classes[i]);
 			writeSummary(classes[i]);
