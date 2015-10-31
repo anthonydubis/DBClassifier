@@ -51,12 +51,12 @@ public class Utils {
 		return metadata.getInt("WebTotal");
 	}
 	
-	public static List<String> getTopDocs(String key, String host, String query) throws JSONException, IOException {
-		ArrayList<String> docs = new ArrayList<String>();
+	public static String[] getTopDocs(String key, String host, String query) throws JSONException, IOException {
 		JSONArray jsonArr = queryBing(key, host, query, 4).getJSONArray("Web");
+		String[] docs = new String[jsonArr.length()];
 		for (int i=0; i<jsonArr.length(); i++) {
 			JSONObject json = jsonArr.getJSONObject(i);
-			docs.add(json.get("Url").toString());
+			docs[i] = json.get("Url").toString();
 			System.out.println("Getting page " + json.get("Url").toString() + "\n");
 		}
 		return docs;

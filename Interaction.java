@@ -11,7 +11,7 @@ public class Interaction {
 		
 		System.out.println("Key: " + key + "\nt_es: " + t_es + "\nt_ec: " + t_ec + "\nhost: " + host);
 		
-		Summarizer summarizer = new Summarizer();
-		summarizer.buildSummaries(key, host, t_ec, t_es);
+		Summarizer summarizer = new Summarizer(host, key);
+		summarizer.buildSummaries(t_ec, t_es);
 	}
 }
