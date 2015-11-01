@@ -11,14 +11,8 @@ import org.json.JSONException;
 public class Classifier {
 	private String host;
 	private String key;
-	
-	/* Option 1 */
-	public HashMap<String, String> files;
-	
-	/* Option 2 */
 	private Node root;
 	
-	/* Option 2 */
 	public class Node {
 		/* The category name - Root, Health, etc. */
 		String C;
@@ -38,51 +32,13 @@ public class Classifier {
 	public Classifier(String host, String key) {
 		this.host = host;
 		this.key = key;
-		
-		/* Option 1 */
-		files = new HashMap<String, String>();
-		files.put("Root", "root.txt");
-		files.put("Computers", "computers.txt");
-		files.put("Health", "health.txt");
-		files.put("Sports", "sports.txt");
-		
-		/* Option 2 - use this.root to access nodes and file names */
-		buildClassification();
+		buildClassificationTree();
 	}
-	
-	/* ---------------------------- Option 1 -------------------------------- */
-	
-	private HashMap<String, Integer> getCoverage(String classification) throws IOException, JSONException {
-		HashMap<String, Integer> coverages = new HashMap<String, Integer>();
-		FileInputStream fstream = new FileInputStream(files.get(classification));
-		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
-		String line = br.readLine();
-		String db = line.split(" ")[0];
-		int coverage = 0;
-		while (line != null)   {
-			// may need to treat query
-			String query = line.split(" ")[1];
-			if (db.equals(line.split(" ")[0])) {
-				coverage += Utils.getNumDocs(key, host, query);
-			} else {
-				coverages.put(db, coverage);
-				System.out.println(db);
-				System.out.println(coverage);
-				db = line.split(" ")[0];
-				coverage = Utils.getNumDocs(key, host, query);
-			}
-			line = br.readLine();
-		}
-		br.close();
-		return coverages;
-	}
-	
-	/* -------------------------------- Option 2 -------------------------------- */
 	
 	/*
 	 * Build the tree structure that represents the classification hierarchy
 	 */
-	private void buildClassification()
+	private void buildClassificationTree()
 	{
 		/* Level 2 Categories - The leaf nodes */
 		Node programming = new Node("Programming", null, null);
@@ -117,6 +73,7 @@ public class Classifier {
 	{
 		int coverage = 0;
 		
+		System.out.println("Opening file: " + parent.queries_file);
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(parent.queries_file)));
 		String line = null;
 		
@@ -180,32 +137,8 @@ public class Classifier {
 	}
 
 	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
-		/* Option 2 */
 		String ajd_classification = classify(root, host, t_ec, t_es, 1);
-		System.out.println("AJD_Classification: " + ajd_classification);
-		
-		/* Option 1 */
-		StringBuilder classification = new StringBuilder("Root");
-		HashMap<String, Integer> coverages = getCoverage("Root");
-
-		int maxCoverage = 0;
-		String candidate = "";
-		for (String db : coverages.keySet()) {
-			// Only with coverages for now
-			//float dbSpecificity = dbCoverages.get(db) / n;
-			if (coverages.get(db) >= t_ec) {
-				candidate = "/" + db;
-				HashMap<String, Integer> subDbCoverages = getCoverage(db);
-				for (String subDb : subDbCoverages.keySet()) {
-					if (subDbCoverages.get(subDb) >= t_ec && subDbCoverages.get(subDb) > maxCoverage) {
-						candidate = candidate + "/" + subDb;
-						maxCoverage = subDbCoverages.get(subDb);
-					}
-				}
-			}
-		}
-		classification.append(candidate);
-		return classification.toString();
+		return ajd_classification;
 	}
 
 }
