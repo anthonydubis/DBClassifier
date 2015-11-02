@@ -19,6 +19,7 @@ public class Utils {
 		query = query.replaceAll(" ", "%20");
 		String urlPattern = "https://api.datamarket.azure.com/Data.ashx/Bing/SearchWeb/v1/Composite?Query=%%27site%%3a%s%%20%s%%27&$top=%s&$format=JSON";
 		String bingUrl = String.format(urlPattern, host, query, top);
+
 		/* Setup account key */
 		byte[] accountKeyBytes = Base64.encodeBase64((key + ":" + key).getBytes());
 		String accountKeyEnc = new String(accountKeyBytes);

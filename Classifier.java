@@ -84,10 +84,7 @@ public class Classifier {
 			if (!parts[0].equalsIgnoreCase(child.C))
 				continue;
 			
-			/* Handle queries with multiple words */
-			String query = "";
-			for (int i = 1; i < parts.length; i++)
-				query = query + parts[i];
+			String query = line.substring(line.indexOf(" "));
 			
 			coverage += Utils.getNumDocs(key, host, query);
 		}
