@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
@@ -14,6 +15,7 @@ public class Summarizer {
 	private String host;
 	private String key;
 	private Classifier classifier;
+	private HashMap<String, String> files;
 	private TreeMap<String, Integer> frequencies;
 	private Set<String> samples;
 	
@@ -22,6 +24,12 @@ public class Summarizer {
 		this.key = key;
 		samples = new HashSet<String>();
 		frequencies = new TreeMap<String, Integer>();
+		
+		files = new HashMap<String, String>();		
+		files.put("Root", "root.txt");		
+		files.put("Computers", "computers.txt");		
+		files.put("Health", "health.txt");		
+		files.put("Sports", "sports.txt");
 	}
 	
 	public void addFrequencies(String url) {
@@ -38,7 +46,7 @@ public class Summarizer {
 
 	// For each query, get 4 top docs and if docs are new, run lynx and add word frequencies.
 	public void sampleAndSummarize(String classification) throws IOException, JSONException {
-		FileInputStream fstream = new FileInputStream(classifier.files.get(classification));
+		FileInputStream fstream = new FileInputStream(files.get(classification));
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 		String line = br.readLine();
 		int counter = 1;
