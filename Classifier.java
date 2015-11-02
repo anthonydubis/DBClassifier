@@ -107,7 +107,7 @@ public class Classifier {
 	/*
 	 * Following the algorithm as outline in Fig. 4
 	 */
-	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, double t_es, double specificity) throws IOException, JSONException
+	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, double t_es, double parentSpecificity) throws IOException, JSONException
 	{	
 		qualifyingNodes.add(node);
 		
@@ -125,10 +125,10 @@ public class Classifier {
 		
 		/* Dive into sub-categories that meet criteria */
 		for (Node child : node.children) {
-			specificity = (double)child.coverage / numDocs;
-			System.out.println("Specificity for " + child.category + ": " + specificity);
-			if (specificity >= t_es && child.coverage >= t_ec) {
-				classify(qualifyingNodes, child, host, t_ec, t_es, specificity);
+			double childSpecificity = (parentSpecificity * child.coverage) / numDocs;
+			System.out.println("Specificity for " + child.category + ": " + childSpecificity);
+			if (childSpecificity >= t_es && child.coverage >= t_ec) {
+				classify(qualifyingNodes, child, host, t_ec, t_es, childSpecificity);
 			}
 		}
 	}
