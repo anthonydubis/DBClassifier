@@ -107,7 +107,7 @@ public class Classifier {
 	/*
 	 * Following the algorithm as outline in Fig. 4
 	 */
-	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, float t_es, float specificity) throws IOException, JSONException
+	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, double t_es, double specificity) throws IOException, JSONException
 	{	
 		qualifyingNodes.add(node);
 		
@@ -117,15 +117,15 @@ public class Classifier {
 		}
 		
 		/* Get the number of matches for each of the children categories */
-		float numDocs = 0;
+		double numDocs = 0;
 		for (Node child : node.children) {
-			numDocs += (float)computeCoverage(node, child);
+			numDocs += (double)computeCoverage(node, child);
 			System.out.println("Coverage for " + child.category + ": " + child.coverage);
 		}
 		
 		/* Dive into sub-categories that meet criteria */
 		for (Node child : node.children) {
-			specificity = (float)child.coverage / numDocs;
+			specificity = (double)child.coverage / numDocs;
 			System.out.println("Specificity for " + child.category + ": " + specificity);
 			if (specificity >= t_es && child.coverage >= t_ec) {
 				classify(qualifyingNodes, child, host, t_ec, t_es, specificity);
@@ -133,7 +133,7 @@ public class Classifier {
 		}
 	}
 
-	public String[] classifyDB(int t_ec, float t_es) throws IOException, JSONException {
+	public String[] classifyDB(int t_ec, double t_es) throws IOException, JSONException {
 		ArrayList<Node> qualifyingNodes = new ArrayList<Node>();
 		classify(qualifyingNodes, root, host, t_ec, t_es, 1);
 		
@@ -142,5 +142,4 @@ public class Classifier {
 
 		return new String[] {"test"};
 	}
-
 }
