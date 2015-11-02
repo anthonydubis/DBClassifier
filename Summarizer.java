@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeMap;
@@ -14,31 +15,44 @@ public class Summarizer {
 	private String host;
 	private String key;
 	private Classifier classifier;
+	private HashMap<String, String> files;
 	private TreeMap<String, Integer> frequencies;
+	private TreeMap<String, Integer> matches;
 	private Set<String> samples;
 	
 	public Summarizer(String host, String key) {
 		this.host = host;
 		this.key = key;
-		samples = new HashSet<String>();
+		// files references the category's query probe file.
+		files = new HashMap<String, String>();
+		files.put("Root", "root.txt");
+		files.put("Computers", "computers.txt");
+		files.put("Health", "health.txt");
+		files.put("Sports", "sports.txt");
 		frequencies = new TreeMap<String, Integer>();
+		matches = new TreeMap<String, Integer>();
+		samples = new HashSet<String>();
 	}
 	
-	public void addFrequencies(String url) {
+	public void addFrequencyAndMatches(String url) {
 		Set<String> words = getWordsLynx.runLynx(url);
 		int frequency;
+		int match;
 		for (String word : words) {
 			frequency = 1;
+			match = -1;
 			if (frequencies.containsKey(word)) {
 				frequency = frequencies.get(word) + 1;
+				match = matches.get(word);
 			}
 			frequencies.put(word, frequency);
+			matches.put(word, match);
 		}
 	}
 
 	// For each query, get 4 top docs and if docs are new, run lynx and add word frequencies.
 	public void sampleAndSummarize(String classification) throws IOException, JSONException {
-		FileInputStream fstream = new FileInputStream(classifier.files.get(classification));
+		FileInputStream fstream = new FileInputStream(files.get(classification));
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 		String line = br.readLine();
 		int counter = 1;
@@ -48,12 +62,15 @@ public class Summarizer {
 			String query = line.substring(queryStart);
 			System.out.println("Round " + counter);
 			String[] docs = Utils.getTopDocs(key, host, query);
-			for (int i=0; i<docs.length; i++) {
+			for (int i=0; i<docs.length-1; i++) {
 				if (!samples.contains(docs[i])) {
-					addFrequencies(docs[i]);
+					addFrequencyAndMatches(docs[i]);
 					samples.add(docs[i]);
 				}
 			}
+			// Query probe frequency + matches. TODO: function 
+			frequencies.put(query, (docs.length-1));
+			matches.put(query, Integer.valueOf(docs[docs.length]));
 			counter++;
 			line = br.readLine();
 		}
@@ -65,7 +82,7 @@ public class Summarizer {
 		filename = String.format(filename, classification, host);
 		FileWriter summary = new FileWriter(filename);
 		for (String word : frequencies.keySet()) {
-			summary.write(word + " " + frequencies.get(word) + "\n");
+			summary.write(word + "#" + frequencies.get(word) + "\n");
 		}
 		summary.close();
 	}
