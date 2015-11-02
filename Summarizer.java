@@ -91,10 +91,8 @@ public class Summarizer {
 	}
 
 	public void buildSummaries(int t_ec, float t_es) throws IOException, JSONException {
-		classifier = new Classifier(key, host);
-		// For now I am not running the classifier, just doing part 2.
-		//String[] classes = classifier.classifyDB(t_ec, t_es).split("/");
-		String[] classifications = {"Root/Health/Fitness"};
+		classifier = new Classifier(host, key);
+		String[] classifications = classifier.classifyDB(t_ec, t_es);
 		for (int j=0; j<classifications.length; j++) {
 			restart();
 			String[] categories = classifications[j].split("/");
