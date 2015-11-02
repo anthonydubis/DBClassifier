@@ -11,7 +11,7 @@ import java.util.TreeMap;
 import org.json.JSONException;
 
 public class Summarizer {
-	
+
 	private String host;
 	private String key;
 	private Classifier classifier;
@@ -19,7 +19,7 @@ public class Summarizer {
 	private TreeMap<String, Integer> frequencies;
 	private TreeMap<String, Integer> matches;
 	private Set<String> samples;
-	
+
 	public Summarizer(String host, String key) {
 		this.host = host;
 		this.key = key;
@@ -29,11 +29,8 @@ public class Summarizer {
 		files.put("Computers", "computers.txt");
 		files.put("Health", "health.txt");
 		files.put("Sports", "sports.txt");
-		frequencies = new TreeMap<String, Integer>();
-		matches = new TreeMap<String, Integer>();
-		samples = new HashSet<String>();
 	}
-	
+
 	public void addFrequencyAndMatches(String url) {
 		Set<String> words = getWordsLynx.runLynx(url);
 		int frequency;
@@ -58,44 +55,56 @@ public class Summarizer {
 		int counter = 1;
 		System.out.println("\n\nQuerying for classification " + classification);
 		while (line != null)   {
-			int queryStart = line.indexOf(" ") + 1;
-			String query = line.substring(queryStart);
-			System.out.println("Round " + counter);
-			String[] docs = Utils.getTopDocs(key, host, query);
-			for (int i=0; i<docs.length-1; i++) {
-				if (!samples.contains(docs[i])) {
-					addFrequencyAndMatches(docs[i]);
-					samples.add(docs[i]);
+			int queryStart = line.indexOf(" ");
+			String query = line.substring(queryStart).trim();
+			System.out.println("Round " + counter + ":" + query);
+			TopK topK = Utils.getTopDocs(key, host, query);
+			for (int i=0; i<topK.k; i++) {
+				if (!samples.contains(topK.urls[i])) {
+					addFrequencyAndMatches(topK.urls[i]);
+					samples.add(topK.urls[i]);
 				}
 			}
 			// Query probe frequency + matches. TODO: function 
-			frequencies.put(query, (docs.length-1));
-			matches.put(query, Integer.valueOf(docs[docs.length]));
+			frequencies.put(query, topK.k);
+			matches.put(query, topK.webtotal);
 			counter++;
 			line = br.readLine();
 		}
 		br.close();
 	}
-	
+
 	public void writeSummary(String classification) throws IOException {
 		String filename = "%s-%s.txt";
 		filename = String.format(filename, classification, host);
 		FileWriter summary = new FileWriter(filename);
 		for (String word : frequencies.keySet()) {
-			summary.write(word + "#" + frequencies.get(word) + "\n");
+			summary.write(word + "#" + frequencies.get(word) + "#" + matches.get(word) + "\n");
 		}
 		summary.close();
+	}
+
+	public void restart() {
+		frequencies = new TreeMap<String, Integer>();
+		matches = new TreeMap<String, Integer>();
+		samples = new HashSet<String>();
 	}
 
 	public void buildSummaries(int t_ec, float t_es) throws IOException, JSONException {
 		classifier = new Classifier(key, host);
 		// For now I am not running the classifier, just doing part 2.
 		//String[] classes = classifier.classifyDB(t_ec, t_es).split("/");
-		String[] classes = {"Root","Health"};
-		for (int i=(classes.length-1); i>=0; i--) {
-			System.out.println("Classification: " + classes[i]);
-			sampleAndSummarize(classes[i]);
-			writeSummary(classes[i]);
+		String[] classifications = {"Root/Health/Fitness"};
+		for (int j=0; j<classifications.length; j++) {
+			restart();
+			String[] categories = classifications[j].split("/");
+			// Ignore leaf nodes.
+			int n = Math.min(1, (categories.length-1));
+			for (int i=n; i>=0; i--) {
+				System.out.println("Classification: " + categories[i]);
+				sampleAndSummarize(categories[i]);
+				writeSummary(categories[i]);
+			}
 		}
 	}
 }

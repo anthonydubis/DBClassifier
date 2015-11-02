@@ -6,7 +6,6 @@ import java.net.URL;
 import java.net.URLConnection;
 
 import org.apache.commons.codec.binary.Base64;
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -50,17 +49,8 @@ public class Utils {
 		return metadata.getInt("WebTotal");
 	}
 	
-	public static String[] getTopDocs(String key, String host, String query) throws JSONException, IOException {
-		JSONObject data = queryBing(key, host, query, 4);
-		JSONArray results = data.getJSONArray("Web");
-		String[] docs = new String[results.length() + 1];
-		int i;
-		for (i=0; i<results.length(); i++) {
-			JSONObject json = results.getJSONObject(i);
-			docs[i] = json.get("Url").toString();
-			System.out.println("Getting page " + json.get("Url").toString() + "\n");
-		}
-		docs[i] = (String) data.get("WebTotal");
-		return docs;
+	public static TopK getTopDocs(String key, String host, String query) throws JSONException, IOException {
+		TopK results = new TopK(queryBing(key, host, query, 4));
+		return results;
 	}
 }

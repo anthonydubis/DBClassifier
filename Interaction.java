@@ -10,14 +10,8 @@ public class Interaction {
 		String host = args[3];
 		
 		System.out.println("Key: " + key + "\nt_es: " + t_es + "\nt_ec: " + t_ec + "\nhost: " + host);
-	
-		Classifier classifier = new Classifier(host, key);
-		String[] classifications = classifier.classifyDB(t_ec, t_es);
 		
-		for (String classification : classifications)
-			System.out.println(classification);
-		
-		// Summarizer summarizer = new Summarizer(host, key);
-		// summarizer.buildSummaries(t_ec, t_es);
+		Summarizer summarizer = new Summarizer(host, key);
+		summarizer.buildSummaries(t_ec, t_es);
 	}
 }
