@@ -107,13 +107,14 @@ public class Classifier {
 	/*
 	 * Following the algorithm as outline in Fig. 4
 	 */
-	private String classify(Node node, String host, int t_ec, float t_es, float specificity) throws IOException, JSONException
+	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, float t_es, float specificity) throws IOException, JSONException
 	{	
-		String result = "";
+		qualifyingNodes.add(node);
 		
-		/* If this is a leaf node, return the category */
-		if (isLeafNode(node))
-			return "/" + node.category;
+		/* If this is a leaf node, return as it has no children to add */
+		if (isLeafNode(node)) {
+			return;
+		}
 		
 		/* Get the number of matches for each of the children categories */
 		float numDocs = 0;
@@ -127,24 +128,19 @@ public class Classifier {
 			specificity = (float)child.coverage / numDocs;
 			System.out.println("Specificity for " + child.category + ": " + specificity);
 			if (specificity >= t_es && child.coverage >= t_ec) {
-				result += node.category + classify(child, host, t_ec, t_es, specificity);
+				classify(qualifyingNodes, child, host, t_ec, t_es, specificity);
 			}
 		}
-		
-		if (result.equals(""))
-			result = node.category;
-		
-		if (node != root)
-			result = "/" + result;
-
-		return result;
 	}
 
 	public String[] classifyDB(int t_ec, float t_es) throws IOException, JSONException {
-		// ArrayList<Node> qualifyingNodes = new ArrayList<Node>();
-		String classification = classify(root, host, t_ec, t_es, 1);
+		ArrayList<Node> qualifyingNodes = new ArrayList<Node>();
+		classify(qualifyingNodes, root, host, t_ec, t_es, 1);
+		
+		for (Node n : qualifyingNodes)
+			System.out.println(n.category);
 
-		return new String[] {classification};
+		return new String[] {"test"};
 	}
 
 }
