@@ -12,6 +12,7 @@ public class Classifier {
 	private String host;
 	private String key;
 	private Node root;
+	private Map<String, Integer> webCounts;
 	
 	public class Node {
 		/* The category name - Root, Health, etc. */
@@ -32,6 +33,7 @@ public class Classifier {
 	public Classifier(String host, String key) {
 		this.host = host;
 		this.key = key;
+		this.webCounts = new HashMap<String, Integer>();
 		buildClassificationTree();
 	}
 	
@@ -73,7 +75,6 @@ public class Classifier {
 	{
 		int coverage = 0;
 		
-		System.out.println("Opening file: " + parent.queries_file);
 		BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(parent.queries_file)));
 		String line = null;
 		
@@ -86,7 +87,10 @@ public class Classifier {
 			
 			String query = line.substring(line.indexOf(" "));
 			
-			coverage += Utils.getNumDocs(key, host, query);
+			if (!webCounts.containsKey(query))
+				webCounts.put(query, Utils.getNumDocs(key, host, query));
+			
+			coverage += webCounts.get(query);
 		}
 		br.close();
 		
@@ -110,16 +114,14 @@ public class Classifier {
 		for (Node child : node.children) {
 			coverages.put(child.C, (float)getCoverage(node, child));
 			numDocs += coverages.get(child.C);
-			System.out.println("Node: " + child.C + " with matches: " + coverages.get(child.C));
+			System.out.println("Coverage for " + child.C + ": " + coverages.get(child.C));
 		}
 		
 		/* Dive into sub-categories that meet criteria */
 		for (Node child : node.children) {
-			System.out.println("Checking specificity for " + child.C);
 			e_specificity = coverages.get(child.C) / numDocs;
-			System.out.println("e_specificity equals " + e_specificity + " coverage equals: " + coverages.get(child.C));
+			System.out.println("Specificity for " + child.C + ": " + e_specificity);
 			if (e_specificity >= t_es && coverages.get(child.C) >= t_ec) {
-				System.out.println("Criteria was met");
 				result += node.C + classify(child, host, t_ec, t_es, e_specificity);
 			}
 		}
