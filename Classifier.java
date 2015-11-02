@@ -133,9 +133,10 @@ public class Classifier {
 		return result;
 	}
 
-	public String classifyDB(int t_ec, float t_es) throws IOException, JSONException {
-		String ajd_classification = classify(root, host, t_ec, t_es, 1);
-		return ajd_classification;
+	public String[] classifyDB(int t_ec, float t_es) throws IOException, JSONException {
+		String classification = classify(root, host, t_ec, t_es, 1);
+		
+		return new String[] {classification};
 	}
 
 }
