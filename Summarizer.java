@@ -56,7 +56,7 @@ public class Summarizer {
 	 * Add entry with query probe, matches and estimated frequency.
 	 */
 	private void addQueryProbe(String probe, Integer frequency, Integer matches) {
-		this.matches.put(probe, 2);
+		this.matches.put(probe, matches);
 		if (!frequencies.containsKey(probe)) {
 			frequencies.put(probe, frequency);
 		}
@@ -76,8 +76,9 @@ public class Summarizer {
 		while (line != null)   {
 			int queryStart = line.indexOf(" ");
 			String query = line.substring(queryStart).trim();
-			System.out.println("\nRound " + counter + ":" + query);
 			TopK topK = Utils.getTopDocs(key, host, query);
+			System.out.println("\nRound " + counter + ":" + query);
+			System.out.println("Documents retrieved:" + topK.k);
 			for (int i=0; i<topK.k; i++) {
 				// Process document only if new
 				if (!samples.contains(topK.urls[i])) {
@@ -116,15 +117,9 @@ public class Summarizer {
 	}
 
 	public void buildSummaries(int t_ec, float t_es) throws IOException, JSONException {
-<<<<<<< HEAD
-		classifier = new Classifier(key, host);
+		classifier = new Classifier(host, key);
 		// Handle multiple classifications
 		String[] classifications = classifier.classifyDB(t_ec, t_es);
-
-=======
-		classifier = new Classifier(host, key);
-		String[] classifications = classifier.classifyDB(t_ec, t_es);
->>>>>>> c5ef44322d7fcf1ebcc8984adf07139bb973d724
 		for (int j=0; j<classifications.length; j++) {
 			// Clear previous classification data
 			restart();

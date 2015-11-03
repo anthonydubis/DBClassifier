@@ -43,7 +43,7 @@ Only nodes that pass the coverage and specificity thresholds are put in this
 list, and we call them "qualifying nodes."
 
 Specificity and coverage are calculated as detailed in Definitions 3.2 and 3.3
-in the provided paper. 
+in the provided paper and printed to standard output per category processed. 
 
 As mentioned before, parent pointers can be used to create the classification.
 Once we have the qualifying nodes, we do just this to create our array of
@@ -86,6 +86,12 @@ After processing the [up to] 4 documents, the query probe itself is added
 to the 'frequencies' and 'matches' maps with up to 4 as frequency and the
 WebTotal value as matches.
 
+Note for each query probe, the following is printed to standard output:
+The round, the query probe, the (up to 4) number of top documents retrieved
+from Bing, and the new documents to be included in the sample. As in, a
+given query may have retrieved 4 urls, but if 3 of these have been added to
+the sample in previous rounds, only the remaining new url will be printed.
+
 Finally, writeSummaries() is run, traversing the 'frequencies' and 'matches'
 maps and writing to a file named according to the project specifications.
 The line structure is <term>#<frequency>#<matches>. Note the numerical
@@ -101,11 +107,12 @@ multi-word query probe are likely to include all words; as such for a top-4
 request we attribute the number of results returned (at times less than 4) to
 the respective query probe. However, the frequency is only added if the term
 is not present in the 'frequencies' map. Since the query probe is processed 
-for entry after the document sample, it is likely that single word probes will
-not have the associated frequency value incremented by up to 4 and only the
-matches value is modified. For multi-word probes, these will likely result in
-a new entry with a minimum document frequency estimate (up to 4) and the
-WebTotal value as matches.
+for entry after the document sample, it is highly likely that single word probes
+will not have the associated frequency value incremented by up to 4 and only the
+matches value is modified. Even so, the overestimation will be slight and
+comparitively insignificant. For multi-word probes, these will result in a new
+entry with a minimum document frequency estimate (up to 4) and the Webtotal
+value as matches.
 
 BING ACCOUNT KEY
 ----------------
