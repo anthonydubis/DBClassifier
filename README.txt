@@ -23,8 +23,8 @@ PROGRAM DESIGN
 
 Part 1:
 
-Part 1 is primary contained in Classifer.java and works as follows. When the
-class if constructed, the classification hierarchy is created in the form of a
+Part 1 is primarily contained in Classifer.java and works as follows. When the
+class is constructed, the classification hierarchy is created in the form of a
 tree (a simple Node class is represented within Classifer.java). This tree
 makes traversing the nodes simple and clearly represents the hierarchy of
 categories, their children subcategories, and parent category. The nodes contain
@@ -49,6 +49,58 @@ As mentioned before, parent pointers can be used to create the classification.
 Once we have the qualifying nodes, we do just this to create our array of strings
 where each entry is a classification for the database that passes the thresholds
 provided.
+
+Part 2:
+
+Part 2 is primarily contained in Summarizer.java. A Summarizer object has the
+following attributes: the host to be summarized, Bing account key, a set to
+contain the urls of the document sample, a map structure for term frequencies,
+a map structure for term matches and a map structure to reference the respective
+text file for a given category.
+
+From buildSummaries(), the only public method, an instance of the Classifier
+oject is created and Classifier.classifyDB() is run with the given host, key,
+specificty threshold and coverage threshold resulting in an array of
+classifications (i.e. {"Root/Health", "Root/Sports/Soccer"}). For each of the
+classifications, sampleAndSummarize() is run for the categories in ascending
+order ignoring leaf categories (i.e. For "Root/Sports/Soccer" the first run is
+"Sports" then "Root").
+
+The method sampleAndSummarize() contains the lion's share of the logic.
+According to the category received, the corresponding query probe file is
+traversed. For each query probe, a Utils function returns a TopK object
+containing the up to 4 top results returned by Bing (at times there are less)
+and the total number of results available (WebTotal). For these up to 4
+documents, if a document is not previously contained in the set 'sample',
+the method addFrequenciesAndMatches() runs Graviano's getWordsLynx script
+to extract the set of words for a given url. For each of these words, the
+'frequencies' map has it's value incremented or a new entry with the word
+as key and value 1 is added. The 'matches' map either maintains its value
+(in the case of the word being a query probe with a non-default matches
+value) or a new entry with the word as key and a default value -1 is added.
+After processing the [up to] 4 documents, the query probe itself is added
+to the 'frequencies' and 'matches' maps with up to 4 as frequency and the
+WebTotal value as matches.
+
+Finally, writeSummaries() is run, traversing the 'frequencies' and 'matches'
+maps and writing to a file named according to the project specifications.
+The line structure is <term>#<frequency>#<matches>. Note the numerical
+values are in integer format (not float).
+
+MULTI-WORD QUERY PROBE HANDLING
+-------------------------------
+As explained in PROGRAM DESIGN, Part 2, we opted to attribute up to 4 points
+to a query probe's 'frequency' value. This is done both for single and for
+multi-word query probes. The logic is that results returned by Bing for a
+multi-word query probe are likely to include all words; as such for a top-4
+request we attribute the number of results returned (at times less than 4) to
+the respective query probe. However, the frequency is only added if the term
+is not present in the 'frequencies' map. Since the query probe is processed 
+for entry after the document sample, it is likely that single word probes will
+not have the associated frequency value incremented by up to 4 and only the
+matches value is modified. For multi-word probes, these will likely result in
+a new entry with a minimum document frequency estimate (up to 4) and the
+WebTotal value as matches.
 
 BING ACCOUNT KEY
 ----------------
