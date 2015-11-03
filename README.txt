@@ -46,9 +46,9 @@ Specificity and coverage are calculated as detailed in Definitions 3.2 and 3.3
 in the provided paper. 
 
 As mentioned before, parent pointers can be used to create the classification.
-Once we have the qualifying nodes, we do just this to create our array of strings
-where each entry is a classification for the database that passes the thresholds
-provided.
+Once we have the qualifying nodes, we do just this to create our array of
+strings where each entry is a classification for the database that passes the
+thresholds provided.
 
 Part 2:
 
