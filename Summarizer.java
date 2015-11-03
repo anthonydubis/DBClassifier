@@ -23,7 +23,7 @@ public class Summarizer {
 	public Summarizer(String host, String key) {
 		this.host = host;
 		this.key = key;
-		// files references the category's query probe file.
+		// files references the category's query probe .txt file.
 		files = new HashMap<String, String>();
 		files.put("Root", "root.txt");
 		files.put("Computers", "computers.txt");
@@ -31,7 +31,12 @@ public class Summarizer {
 		files.put("Sports", "sports.txt");
 	}
 
-	public void addFrequencyAndMatches(String url) {
+	/*
+	 * For a given url, run lynx to obtain word set then for each word:
+	 * set/increment frequency and set default/maintain current match value.
+	 */
+	private void addFrequencyAndMatches(String url) {
+		System.out.println("Getting page: " + url);
 		Set<String> words = getWordsLynx.runLynx(url);
 		int frequency;
 		int match;
@@ -47,34 +52,51 @@ public class Summarizer {
 		}
 	}
 
-	// For each query, get 4 top docs and if docs are new, run lynx and add word frequencies.
-	public void sampleAndSummarize(String classification) throws IOException, JSONException {
+	/*
+	 * Add entry with query probe, matches and estimated frequency.
+	 */
+	private void addQueryProbe(String probe, Integer frequency, Integer matches) {
+		this.matches.put(probe, 2);
+		if (!frequencies.containsKey(probe)) {
+			frequencies.put(probe, frequency);
+		}
+	}
+
+	/*
+	 * For each query probe, retrieve 4 top documents from Bing;
+	 * Process words from document.
+	 */
+	private void sampleAndSummarize(String classification) throws IOException, JSONException {
 		FileInputStream fstream = new FileInputStream(files.get(classification));
 		BufferedReader br = new BufferedReader(new InputStreamReader(fstream));
 		String line = br.readLine();
 		int counter = 1;
-		System.out.println("\n\nQuerying for classification " + classification);
+		System.out.println("\nQuerying for classification " + classification);
+
 		while (line != null)   {
 			int queryStart = line.indexOf(" ");
 			String query = line.substring(queryStart).trim();
-			System.out.println("Round " + counter + ":" + query);
+			System.out.println("\nRound " + counter + ":" + query);
 			TopK topK = Utils.getTopDocs(key, host, query);
 			for (int i=0; i<topK.k; i++) {
+				// Process document only if new
 				if (!samples.contains(topK.urls[i])) {
 					addFrequencyAndMatches(topK.urls[i]);
 					samples.add(topK.urls[i]);
 				}
 			}
-			// Query probe frequency + matches. TODO: function 
-			frequencies.put(query, topK.k);
-			matches.put(query, topK.webtotal);
+			// Process query probe
+			addQueryProbe(query, topK.k, topK.webtotal);
 			counter++;
 			line = br.readLine();
 		}
 		br.close();
 	}
 
-	public void writeSummary(String classification) throws IOException {
+	/*
+	 * Write terms, frequencies and matches to output file.
+	 */
+	private void writeSummary(String classification) throws IOException {
 		String filename = "%s-%s.txt";
 		filename = String.format(filename, classification, host);
 		FileWriter summary = new FileWriter(filename);
@@ -84,7 +106,10 @@ public class Summarizer {
 		summary.close();
 	}
 
-	public void restart() {
+	/*
+	 * Clear document sample and frequencies/matches for new classification
+	 */
+	private void restart() {
 		frequencies = new TreeMap<String, Integer>();
 		matches = new TreeMap<String, Integer>();
 		samples = new HashSet<String>();
@@ -92,16 +117,16 @@ public class Summarizer {
 
 	public void buildSummaries(int t_ec, float t_es) throws IOException, JSONException {
 		classifier = new Classifier(key, host);
-		// For now I am not running the classifier, just doing part 2.
-		//String[] classes = classifier.classifyDB(t_ec, t_es).split("/");
-		String[] classifications = {"Root/Health/Fitness"};
+		// Handle multiple classifications
+		String[] classifications = classifier.classifyDB(t_ec, t_es);
+
 		for (int j=0; j<classifications.length; j++) {
+			// Clear previous classification data
 			restart();
 			String[] categories = classifications[j].split("/");
-			// Ignore leaf nodes.
+			// Ignore leaf categories.
 			int n = Math.min(1, (categories.length-1));
 			for (int i=n; i>=0; i--) {
-				System.out.println("Classification: " + categories[i]);
 				sampleAndSummarize(categories[i]);
 				writeSummary(categories[i]);
 			}
