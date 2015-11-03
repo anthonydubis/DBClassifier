@@ -64,7 +64,11 @@ specificty threshold and coverage threshold resulting in an array of
 classifications (i.e. {"Root/Health", "Root/Sports/Soccer"}). For each of the
 classifications, sampleAndSummarize() is run for the categories in ascending
 order ignoring leaf categories (i.e. For "Root/Sports/Soccer" the first run is
-"Sports" then "Root").
+"Sports" then "Root"). Doing so avoids re-processing the sub-category when
+when processing the category; the 'frequencies' and 'matches' maps are already
+complete with the data and can be incremented with category values. Note that
+for each classification, the restart() method is called that (re)initializes
+empty maps for a new run.
 
 The method sampleAndSummarize() contains the lion's share of the logic.
 According to the category received, the corresponding query probe file is
