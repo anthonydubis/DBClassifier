@@ -114,7 +114,13 @@ public class Classifier {
 	}
 	
 	/*
-	 * Following the algorithm as outline in Fig. 4
+	 * Does the actual classification. Closely follows the algorithm as outlined in Fig. 4
+	 * 
+	 * Once all recursive calls are complete, qualifyingNodes will contain only Nodes that pass the
+	 * thresholds provided (t_ec and t_es). It will only contain the lowest child node in the tree
+	 * for each classification as the entire classification can be recreated by following parent pointers.
+	 * For example, for Root/Sports/Soccer, it would only contain the Soccer node (and not the Root or
+	 * Sports node) as we can get the parents easily.
 	 */
 	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, double t_es, double parentSpecificity) throws IOException, JSONException
 	{	
@@ -150,6 +156,10 @@ public class Classifier {
 		}
 	}
 	
+	/*
+	 * Creates the string array where each entry represents a classification for this
+	 * database given the coverage and specificity thresholds originally provided.
+	 */
 	private String[] getClassifications(ArrayList<Node> qualifyingNodes) 
 	{
 		String[] classifications = new String[qualifyingNodes.size()];
@@ -167,6 +177,10 @@ public class Classifier {
 		return classifications;
 	}
 
+	/* 
+	 * The only public method. Begins the classification process and returns the
+	 * classifications in the form of a String array.
+	 */
 	public String[] classifyDB(int t_ec, double t_es) throws IOException, JSONException 
 	{
 		System.out.println("\nRelevant Coverages and Specificities:");
