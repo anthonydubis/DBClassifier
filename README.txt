@@ -89,6 +89,7 @@ values are in integer format (not float).
 
 MULTI-WORD QUERY PROBE HANDLING
 -------------------------------
+
 As explained in PROGRAM DESIGN, Part 2, we opted to attribute up to 4 points
 to a query probe's 'frequency' value. This is done both for single and for
 multi-word query probes. The logic is that results returned by Bing for a
