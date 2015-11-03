@@ -18,6 +18,8 @@ public class Classifier {
 	public class Node {
 		/* The category name - Root, Health, etc. */
 		String category;
+		/* The parent node (category) of this node */
+		Node parent;
 		/* Sub-categories, null if this is a leaf node */
 		Node[] children;
 		/* Queries, null if this is a leaf node */
@@ -34,7 +36,8 @@ public class Classifier {
 		}
 	}
 	
-	public Classifier(String host, String key) {
+	public Classifier(String host, String key) 
+	{
 		this.host = host;
 		this.key = key;
 		this.webCounts = new HashMap<String, Integer>();
@@ -61,6 +64,12 @@ public class Classifier {
 		
 		/* Level 0 - the root */
 		this.root = new Node("Root", "root.txt", new Node[] {computers, health, sports});
+		
+		/* Set the parent pointers */
+		computers.parent = health.parent = sports.parent = root;
+		programming.parent = hardware.parent = computers;
+		fitness.parent = diseases.parent = health;
+		basketball.parent = soccer.parent = sports;
 	}
 	
 	/*
@@ -105,11 +114,21 @@ public class Classifier {
 	}
 	
 	/*
-	 * Following the algorithm as outline in Fig. 4
+	 * Does the actual classification. Closely follows the algorithm as outlined in Fig. 4
+	 * 
+	 * Once all recursive calls are complete, qualifyingNodes will contain only Nodes that pass the
+	 * thresholds provided (t_ec and t_es). It will only contain the lowest child node in the tree
+	 * for each classification as the entire classification can be recreated by following parent pointers.
+	 * For example, for Root/Sports/Soccer, it would only contain the Soccer node (and not the Root or
+	 * Sports node) as we can get the parents easily.
 	 */
 	private void classify(ArrayList<Node> qualifyingNodes, Node node, String host, int t_ec, double t_es, double parentSpecificity) throws IOException, JSONException
 	{	
 		qualifyingNodes.add(node);
+		
+		/* Remove parent because this is this node provides the most information */
+		if (node.parent != null)
+			qualifyingNodes.remove(node.parent);
 		
 		/* If this is a leaf node, return as it has no children to add */
 		if (isLeafNode(node)) {
@@ -123,6 +142,10 @@ public class Classifier {
 			System.out.println("Coverage for " + child.category + ": " + child.coverage);
 		}
 		
+		/* No matches for any of the children */
+		if (numDocs == 0)
+			return;
+		
 		/* Dive into sub-categories that meet criteria */
 		for (Node child : node.children) {
 			double childSpecificity = (parentSpecificity * child.coverage) / numDocs;
@@ -132,14 +155,44 @@ public class Classifier {
 			}
 		}
 	}
+	
+	/*
+	 * Creates the string array where each entry represents a classification for this
+	 * database given the coverage and specificity thresholds originally provided.
+	 */
+	private String[] getClassifications(ArrayList<Node> qualifyingNodes) 
+	{
+		String[] classifications = new String[qualifyingNodes.size()];
+		
+		for (int i = 0; i < qualifyingNodes.size(); i++) {
+			Node n = qualifyingNodes.get(i);
+			String result = n.category;
+			while (n.parent != null) {
+				n = n.parent;
+				result = n.category + "/" + result;
+			}
+			classifications[i] = result;
+		}
+		
+		return classifications;
+	}
 
-	public String[] classifyDB(int t_ec, double t_es) throws IOException, JSONException {
+	/* 
+	 * The only public method. Begins the classification process and returns the
+	 * classifications in the form of a String array.
+	 */
+	public String[] classifyDB(int t_ec, double t_es) throws IOException, JSONException 
+	{
+		System.out.println("\nRelevant Coverages and Specificities:");
 		ArrayList<Node> qualifyingNodes = new ArrayList<Node>();
 		classify(qualifyingNodes, root, host, t_ec, t_es, 1);
+		String[] classifications = getClassifications(qualifyingNodes);
 		
-		for (Node n : qualifyingNodes)
-			System.out.println(n.category);
+		System.out.print("\n\n");
+		System.out.println("Classification(s):");
+		for (String s : classifications)
+			System.out.println(s);
 
-		return new String[] {"test"};
+		return classifications;
 	}
 }

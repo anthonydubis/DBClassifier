@@ -116,10 +116,15 @@ public class Summarizer {
 	}
 
 	public void buildSummaries(int t_ec, float t_es) throws IOException, JSONException {
+<<<<<<< HEAD
 		classifier = new Classifier(key, host);
 		// Handle multiple classifications
 		String[] classifications = classifier.classifyDB(t_ec, t_es);
 
+=======
+		classifier = new Classifier(host, key);
+		String[] classifications = classifier.classifyDB(t_ec, t_es);
+>>>>>>> c5ef44322d7fcf1ebcc8984adf07139bb973d724
 		for (int j=0; j<classifications.length; j++) {
 			// Clear previous classification data
 			restart();
